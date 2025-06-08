@@ -9,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Service class for managing users.
  * This class contains the business logic for user operations.
@@ -16,6 +19,7 @@ import java.util.Optional;
 @Service
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
 
     /**
@@ -35,17 +39,23 @@ public class UserService {
      */
     @Transactional
     public User createUser(User user) {
+        logger.info("Attempting to create new user. Name: '{}', Email: '{}'", user.getName(), user.getEmail());
         if (user == null) {
+            logger.warn("User creation failed: User object is null.");
             throw new IllegalArgumentException("User object cannot be null.");
         }
         if (user.getName() == null || user.getName().trim().isEmpty()) {
+            logger.warn("User creation failed: User name is null or empty.");
             throw new IllegalArgumentException("User name cannot be null or empty.");
         }
         if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+            logger.warn("User creation failed: User email is null or empty.");
             throw new IllegalArgumentException("User email cannot be null or empty.");
         }
         // Add any other business logic before saving, e.g., validation
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        logger.info("Successfully created user with ID: {}. Name: '{}', Email: '{}'", savedUser.getId(), savedUser.getName(), savedUser.getEmail());
+        return savedUser;
     }
 
     /**
@@ -54,7 +64,10 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        logger.info("Attempting to retrieve all users.");
+        List<User> users = userRepository.findAll();
+        logger.info("Retrieved {} users.", users.size());
+        return users;
     }
 
     /**
@@ -65,10 +78,18 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public Optional<User> getUserById(Long id) {
+        logger.info("Attempting to retrieve user by ID: {}", id);
         if (id == null) {
+            logger.warn("Failed to retrieve user: ID is null.");
             throw new IllegalArgumentException("User ID cannot be null.");
         }
-        return userRepository.findById(id);
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            logger.info("User found with ID: {}", id);
+        } else {
+            logger.info("User not found with ID: {}", id);
+        }
+        return userOptional;
     }
 
     /**
@@ -81,26 +102,36 @@ public class UserService {
      */
     @Transactional
     public User updateUser(Long id, User userDetails) {
+        logger.info("Attempting to update user with ID: {}. New Name: '{}', New Email: '{}'", id, userDetails.getName(), userDetails.getEmail());
         if (id == null) {
+            logger.warn("User update failed: ID is null.");
             throw new IllegalArgumentException("User ID cannot be null.");
         }
         if (userDetails == null) {
+            logger.warn("User update failed for ID {}: User details object is null.", id);
             throw new IllegalArgumentException("User details object cannot be null.");
         }
         if (userDetails.getName() == null || userDetails.getName().trim().isEmpty()) {
+            logger.warn("User update failed for ID {}: User name is null or empty.", id);
             throw new IllegalArgumentException("User name cannot be null or empty.");
         }
         if (userDetails.getEmail() == null || userDetails.getEmail().trim().isEmpty()) {
+            logger.warn("User update failed for ID {}: User email is null or empty.", id);
             throw new IllegalArgumentException("User email cannot be null or empty.");
         }
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id " + id)); // Or a custom exception
+                .orElseThrow(() -> {
+                    logger.warn("User not found with ID {} during update attempt.", id);
+                    return new RuntimeException("User not found with id " + id); // Or a custom exception
+                });
 
         user.setName(userDetails.getName());
         user.setEmail(userDetails.getEmail());
         // Add other fields to update as necessary
-        return userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+        logger.info("Successfully updated user with ID: {}. Name: '{}', Email: '{}'", updatedUser.getId(), updatedUser.getName(), updatedUser.getEmail());
+        return updatedUser;
     }
 
     /**
@@ -111,13 +142,17 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(Long id) {
+        logger.info("Attempting to delete user with ID: {}", id);
         if (id == null) {
+            logger.warn("User deletion failed: ID is null.");
             throw new IllegalArgumentException("User ID cannot be null.");
         }
         if (!userRepository.existsById(id)) {
+            logger.warn("User not found with ID {} during delete attempt.", id);
             // Or throw a custom "NotFoundException"
             throw new RuntimeException("User not found with id " + id);
         }
         userRepository.deleteById(id);
+        logger.info("Successfully deleted user with ID: {}", id);
     }
 }
