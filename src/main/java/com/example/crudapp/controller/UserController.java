@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * REST controller for managing users.
  * Provides endpoints for CRUD operations on users.
@@ -17,6 +20,7 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
 
     /**
@@ -35,7 +39,9 @@ public class UserController {
      */
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
+        logger.info("POST /api/users - Received request to create user with email: '{}'", user.getEmail());
         User createdUser = userService.createUser(user);
+        logger.info("POST /api/users - Successfully created user with ID: {}. Responding with status 201.", createdUser.getId());
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
@@ -45,7 +51,9 @@ public class UserController {
      */
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
+        logger.info("GET /api/users - Received request to retrieve all users.");
         List<User> users = userService.getAllUsers();
+        logger.info("GET /api/users - Retrieved {} users. Responding with status 200.", users.size());
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
@@ -57,9 +65,16 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        logger.info("GET /api/users/{} - Received request to retrieve user.", id);
         return userService.getUserById(id)
-                .map(user -> new ResponseEntity<>(user, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .map(user -> {
+                    logger.info("GET /api/users/{} - User found. Responding with status 200.", id);
+                    return new ResponseEntity<>(user, HttpStatus.OK);
+                })
+                .orElseGet(() -> {
+                    logger.warn("GET /api/users/{} - User not found. Responding with status 404.", id);
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                });
     }
 
     /**
@@ -71,10 +86,13 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+        logger.info("PUT /api/users/{} - Received request to update user with email: '{}'", id, userDetails.getEmail());
         try {
             User updatedUser = userService.updateUser(id, userDetails);
+            logger.info("PUT /api/users/{} - User updated successfully. Responding with status 200.", id);
             return new ResponseEntity<>(updatedUser, HttpStatus.OK);
         } catch (RuntimeException e) { // Catching RuntimeException from service for now
+            logger.warn("PUT /api/users/{} - Update failed, user not found. Responding with status 404.", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -87,10 +105,13 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable Long id) {
+        logger.info("DELETE /api/users/{} - Received request to delete user.", id);
         try {
             userService.deleteUser(id);
+            logger.info("DELETE /api/users/{} - User deleted successfully. Responding with status 204.", id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) { // Catching RuntimeException from service for now
+            logger.warn("DELETE /api/users/{} - Delete failed, user not found. Responding with status 404.", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
