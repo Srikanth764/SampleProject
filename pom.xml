@@ -30,8 +30,15 @@
 		<java.version>17</java.version>
 		<cucumber.version>7.15.0</cucumber.version>
 		<rest-assured.version>5.4.0</rest-assured.version>
+		<lombok.version>1.18.30</lombok.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
