@@ -1,0 +1,152 @@
+{
+	"info": {
+		"_postman_id": "YOUR_COLLECTION_ID_HERE",
+		"name": "CRUD App API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"description": "API for managing users in the CRUD application."
+	},
+	"item": [
+		{
+			"name": "Create User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"userId\", jsonData.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{$randomFirstName}} {{$randomLastName}}\",\n    \"email\": \"{{$randomEmail}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Creates a new user with random data. The created user's ID is stored in the `userId` collection variable."
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Retrieves a list of all users."
+			},
+			"response": []
+		},
+		{
+			"name": "Get User by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/users/{{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"{{userId}}"
+					]
+				},
+				"description": "Retrieves a specific user by their ID. The `userId` is typically set from the 'Create User' request."
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{$randomFirstName}} {{$randomLastName}} (Updated)\",\n    \"email\": \"{{$randomEmail}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/users/{{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"{{userId}}"
+					]
+				},
+				"description": "Updates an existing user specified by `userId`. Uses random data for the update. The `userId` is typically set from the 'Create User' request."
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/users/{{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"{{userId}}"
+					]
+				},
+				"description": "Deletes a specific user by their ID. The `userId` is typically set from the 'Create User' request."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string",
+			"description": "Base URL of the API. Change if your application runs elsewhere."
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string",
+			"description": "ID of the user, typically captured from the 'Create User' request."
+		}
+	]
+}
