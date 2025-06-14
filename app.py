@@ -66,10 +66,14 @@ def cli_main():
 def get_trading_suggestions():
     timestamp_start = datetime.datetime.utcnow()
 
-    data = request.get_json()
+    try:
+        data = request.get_json()
+    except Exception as e: # Catches werkzeug.exceptions.BadRequest if JSON is malformed/empty
+        app.logger.warn(f"Failed to parse JSON payload: {e}")
+        return jsonify({"error": "Invalid or malformed JSON payload."}), 400
 
-    if not data:
-        return jsonify({"error": "Invalid JSON payload or Content-Type not application/json."}), 400
+    if data is None: # Explicitly check for None if request.get_json(silent=True) was used or if no JSON body.
+        return jsonify({"error": "Empty JSON payload or incorrect Content-Type."}), 400
 
     stock_symbol = data.get('stock_symbol')
     if not stock_symbol:
